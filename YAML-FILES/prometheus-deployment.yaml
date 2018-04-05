@@ -1,0 +1,127 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: prometheus
+rules:
+- apiGroups: [""]
+  resources:
+  - nodes
+  - nodes/proxy
+  - services
+  - endpoints
+  - pods
+  verbs: ["get", "list", "watch"]
+- apiGroups:
+  - extensions
+  resources:
+  - ingresses
+  verbs: ["get", "list", "watch"]
+- nonResourceURLs: ["/metrics"]
+  verbs: ["get"]
+---
+##apiVersion: v1
+##kind: ServiceAccount
+##metadata:
+##  name: default
+##  namespace: monitoring
+##---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: prometheus
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: prometheus
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: monitoring
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "3"
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"extensions/v1beta1","kind":"Deployment","metadata":{"annotations":{},"labels":{"name":"prometheus"},"name":"prometheus","namespace":"monitoring"},"spec":{"replicas":1,"selector":{"matchLabels":{"name":"prometheus"}},"strategy":{"rollingUpdate":{"maxSurge":1,"maxUnavailable":1},"type":"RollingUpdate"},"template":{"metadata":{"annotations":{"prometheus.io/port":"9090","prometheus.io/scrape":"true"},"creationTimestamp":null,"labels":{"name":"prometheus"}},"spec":{"containers":[{"args":["--config.file=/etc/prometheus/prometheus.yml","--storage.tsdb.path=/prometheus","--storage.tsdb.retention=24h","--web.enable-lifecycle"],"command":["/bin/prometheus"],"image":"quay.io/prometheus/prometheus:v2.1.0","imagePullPolicy":"IfNotPresent","name":"prometheus","ports":[{"containerPort":9090,"protocol":"TCP"}],"volumeMounts":[{"mountPath":"/prometheus","name":"storage-volume"},{"mountPath":"/etc/prometheus","name":"config-volume"}]}],"restartPolicy":"Always","securityContext":{},"terminationGracePeriodSeconds":30,"volumes":[{"configMap":{"defaultMode":420,"name":"prometheus-config"},"name":"config-volume"},{"name":"storage-volume","persistentVolumeClaim":{"claimName":"prometheus-config"}}]}}}}
+  creationTimestamp: null
+  generation: 1
+  labels:
+    name: prometheus
+  name: prometheus
+  selfLink: /apis/extensions/v1beta1/namespaces/monitoring/deployments/prometheus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: prometheus
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        prometheus.io/port: "9090"
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/metrics"
+        prometheus.io/probe: "true"
+      creationTimestamp: null
+      labels:
+        name: prometheus
+    spec:
+      containers:
+      - args:
+        - --volume-dir=/etc/prometheus
+        - --webhook-url=http://localhost:9090/-/reload
+        image: jimmidyson/configmap-reload:latest
+        imagePullPolicy: IfNotPresent
+        name: prometheus-server-configmap-reload
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /etc/prometheus
+          name: config-volume
+          readOnly: true
+      - args:
+        - --config.file=/etc/prometheus/prometheus.yml
+        - --storage.tsdb.path=/prometheus
+        - --storage.tsdb.retention=24h
+        - --web.enable-lifecycle
+        - --web.enable-admin-api
+        - --web.console.libraries=/etc/prometheus/console_libraries
+        - --web.console.templates=/etc/prometheus/consoles
+        command:
+        - /bin/prometheus
+        image: quay.io/prometheus/prometheus:v2.1.0
+        imagePullPolicy: IfNotPresent
+        name: prometheus
+        ports:
+        - containerPort: 9090
+          protocol: TCP
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /prometheus
+          name: storage-volume
+        - mountPath: /etc/prometheus
+          name: config-volume
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: prometheus-config
+        name: config-volume
+      - name: storage-volume
+        persistentVolumeClaim:
+          claimName: prometheus-config
+

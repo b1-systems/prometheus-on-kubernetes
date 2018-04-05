@@ -1,0 +1,22 @@
+apiVersion: v1
+data:
+  config.yml: |-
+    global:
+      resolve_timeout: 5m
+    route:
+      receiver: "test_alert"
+    receivers:
+    - name: "test_alert"
+      webhook_configs:
+      - url: "https://blaaaa.blub@gmail.com/prod/monitoringtest"
+        send_resolved: true
+kind: ConfigMap
+metadata:
+  labels:
+    app: prometheus
+    chart: prometheus
+    component: alertmanager
+    heritage: Tiller
+    release: prometheus
+  name: alertmanager-config
+  namespace: monitoring
