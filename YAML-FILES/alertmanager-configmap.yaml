@@ -16,7 +16,6 @@ metadata:
     app: prometheus
     chart: prometheus
     component: alertmanager
-    heritage: Tiller
     release: prometheus
   name: alertmanager-config
   namespace: monitoring
