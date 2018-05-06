@@ -13,7 +13,7 @@ use File::Which;
 
 # Needed variables
 my @exe_path = which('kubectl');
-my $kubectl_binary = 'v1.9.6';
+my $kubectl_binary = 'v1.10.2';
 my $cmd = which('curl');
 my $chmod = which('chmod');
 my $chmod_flag = '+x';
