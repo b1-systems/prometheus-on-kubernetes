@@ -112,14 +112,6 @@ spec:
           name: storage-volume
         - mountPath: /etc/prometheus
           name: config-volume
-      initContainers:                                                                                                                       
-      - name: prometheus-init                                                                                                               
-        imagePullPolicy: Always                                                  
-        image: busybox:1.28                                                                                                                 
-        command: ["sh", "-c", "chown -R nobody:nogroup /prometheus"]
-        volumeMounts:
-        - mountPath: /prometheus
-          name: storage-volume
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler

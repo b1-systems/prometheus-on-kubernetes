@@ -2,8 +2,10 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: alertmanager-config
+  namespace: monitoring
   labels:
     app: alertmanager-config
+    volume.beta.kubernetes.io/storage-class: "standard"
 spec:
   accessModes:
     - ReadWriteOnce

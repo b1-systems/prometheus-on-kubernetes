@@ -1,9 +1,12 @@
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: prometheus-config
+  namespace: monitoring
   labels:
     app: prometheus-config
+    volume.beta.kubernetes.io/storage-class: "standard"
 spec:
   accessModes:
     - ReadWriteOnce

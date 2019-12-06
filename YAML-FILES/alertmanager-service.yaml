@@ -8,6 +8,7 @@ metadata:
   labels:
     name: alertmanager
   name: alertmanager
+  namespace: monitoring
 spec:
   selector:
     app: alertmanager
